@@ -7,16 +7,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class Node {
+public class User {
     private String userName;
-    private List<Node> neighborNodes;
+    private List<User> neighborUsers;
 
     //Store history of past evaluation, (Timestamp, ReputationValue)
-    private Map<Node, List<Pair<Long, Double>>> localReputation;
+    private Map<User, List<Pair<Long, Double>>> localReputation;
 
-    public Node(String userName) {
+    public User(String userName) {
         this.userName = userName;
-        neighborNodes = new ArrayList<>();
+        neighborUsers = new ArrayList<>();
         localReputation = new ConcurrentHashMap<>();
     }
 
@@ -24,11 +24,11 @@ public class Node {
         return userName;
     }
 
-    public List<Node> getNeighborNodes() {
-        return neighborNodes;
+    public List<User> getNeighborUsers() {
+        return neighborUsers;
     }
 
-    public Map<Node, List<Pair<Long, Double>>> getLocalReputation() {
+    public Map<User, List<Pair<Long, Double>>> getLocalReputation() {
         return localReputation;
     }
 
@@ -38,10 +38,10 @@ public class Node {
 
         if (o == null || getClass() != o.getClass()) return false;
 
-        Node node = (Node) o;
+        User user = (User) o;
 
         return new org.apache.commons.lang3.builder.EqualsBuilder()
-                .append(userName, node.userName)
+                .append(userName, user.userName)
                 .isEquals();
     }
 

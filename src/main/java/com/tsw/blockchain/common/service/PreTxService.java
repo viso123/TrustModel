@@ -1,6 +1,6 @@
 package com.tsw.blockchain.common.service;
 
-import com.tsw.blockchain.common.entity.Node;
+import com.tsw.blockchain.common.entity.User;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -25,18 +25,18 @@ public class PreTxService {
 
     private static final long effectiveTime = TimeUnit.DAYS.toMillis(30);
 
-    public void calPreTxTrust(Node initiator, Node target) {
-        Map<Node, Double> creditsFromNeighbors = new HashMap<>();
-        final List<Node> neighborNodes = target.getNeighborNodes();
+    public void calPreTxTrust(User initiator, User target) {
+        Map<User, Double> creditsFromNeighbors = new HashMap<>();
+        final List<User> neighborUsers = target.getNeighborUsers();
         long timestamp = new Date().getTime();
-        updateLocalReputationAfterDecay(neighborNodes, target, timestamp);
+        updateLocalReputationAfterDecay(neighborUsers, target, timestamp);
 
 
     }
 
-    private void updateLocalReputationAfterDecay(List<Node> neighborNodes, Node target, long now) {
+    private void updateLocalReputationAfterDecay(List<User> neighborUsers, User target, long now) {
         //update local reputation after decay
-        neighborNodes.forEach((neighbor) -> {
+        neighborUsers.forEach((neighbor) -> {
             double valueAfterDecay;
             List<Pair<Long, Double>> evaluationHistoryList = neighbor.getLocalReputation().get(target);
             int listSize = evaluationHistoryList.size();
