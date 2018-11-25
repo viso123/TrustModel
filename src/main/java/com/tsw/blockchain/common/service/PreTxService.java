@@ -9,7 +9,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 @Service
 public class PreTxService {
@@ -23,14 +22,10 @@ public class PreTxService {
     @Autowired
     private TxHistoryService txHistoryService;
 
-    private static final long effectiveTime = TimeUnit.DAYS.toMillis(30);
-
     public void calPreTxTrust(User initiator, User target) {
         Map<User, Double> creditsFromNeighbors = new HashMap<>();
         final List<User> neighborUsers = target.getNeighborUsers();
-        long timestamp = new Date().getTime();
         updateLocalReputationAfterDecay(neighborUsers, target, timestamp);
-
 
     }
 

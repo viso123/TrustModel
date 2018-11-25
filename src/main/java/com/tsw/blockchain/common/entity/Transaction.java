@@ -9,6 +9,8 @@ public class Transaction {
     private double amount;
     private long txTimestamp;
     private long txId;
+    private double buyerRating;
+    private double sellerRating;
 
     public User getBuyer() {
         return buyer;
@@ -56,5 +58,21 @@ public class Transaction {
 
     public void setTxId(long txId) {
         this.txId = txId;
+    }
+
+    public double getBuyerRating() {
+        return buyerRating;
+    }
+
+    public void setBuyerRating(double buyerRating) {
+        this.buyerRating = buyerRating;
+    }
+
+    public double getSellerRating() {
+        return sellerRating;
+    }
+
+    public void setSellerRating(double sellerRating) {
+        this.sellerRating = sellerRating;
     }
 }

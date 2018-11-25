@@ -1,7 +1,7 @@
 package com.tsw.blockchain.common.service;
 
-import com.tsw.blockchain.common.entity.User;
 import com.tsw.blockchain.common.entity.Transaction;
+import com.tsw.blockchain.common.entity.User;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.stereotype.Service;
 
@@ -15,13 +15,17 @@ import java.util.concurrent.ConcurrentHashMap;
 public class TxHistoryService {
     private Map<Pair<User, User>, List<Transaction>> txHistory = new ConcurrentHashMap<>();
 
-    public Map<Pair<User, User>, List<Transaction>> getTxHistory() {
+    public Map<Pair<User, User>, List<Transaction>> getAllTxHistory() {
         return txHistory;
+    }
+
+    public List<Transaction> getTxHistory(User buyer, User seller) {
+        return txHistory.getOrDefault(Pair.of(buyer, seller), new ArrayList<>());
     }
 
     public boolean add(Transaction tx) {
         return txHistory
-                .computeIfAbsent(tx.getBuyerSellerPair(), value -> new ArrayList<>())
+                .computeIfAbsent(Pair.of(tx.getBuyer(), tx.getSeller()), value -> new ArrayList<>())
                 .add(tx);
     }
 
@@ -33,4 +37,5 @@ public class TxHistoryService {
             return Optional.of(list.get(list.size() - 1));
         }
     }
+
 }
