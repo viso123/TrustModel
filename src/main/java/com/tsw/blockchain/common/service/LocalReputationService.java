@@ -29,10 +29,14 @@ public class LocalReputationService {
 
     private Map<Pair<User, User>, Double> bigMacMap;
 
+    private Map<Pair<User, User>, List<Double>> smallSMap;
+
+
     public LocalReputationService() {
         localReputationIndividualMap = new ConcurrentHashMap<>();
         localReputationCurrentMap = new ConcurrentHashMap<>();
         bigMacMap = new ConcurrentHashMap<>();
+        smallSMap = new ConcurrentHashMap<>();
     }
 
     public Map<Pair<User, User>, List<Double>> getLocalReputationIndividualMap() {
@@ -43,26 +47,34 @@ public class LocalReputationService {
         return localReputationCurrentMap;
     }
 
-    //    Calculate local reputation L_i,j according to formula
-    public List<Double> refreshLocalReputation(User target, User neighbor, long timestamp) {
-        double bigMac;
-        List<Transaction> txList = txHistoryService.getTxHistory(neighbor, target);
-        List<Double> localReputationForTxList = new ArrayList<>();
-        localReputationForTxList.add(0.5);
-        if (!CollectionUtils.isEmpty(txList)) {
-            bigMac = computeEffectiveLocalReputation(localReputationForTxList, txList);
-        } else {
-            bigMac = DEFAULT_BIG_MAC;
-        }
-        bigMacMap.put(Pair.of(neighbor, target), bigMac);
-
-        computeCurrentLocalReputation(localReputationForTxList, txList, timestamp, bigMac);
-        return getLocalReputationIndividualMap().put(Pair.of(neighbor, target), localReputationForTxList);
+    public Map<Pair<User, User>, Double> getBigMacMap() {
+        return bigMacMap;
     }
 
-    private Double computeCurrentLocalReputation(List<Double> localReputationForTxList, List<Transaction> txList,
-                                                 long timestamp, double bigMac) {
+    public Map<Pair<User, User>, List<Double>> getSmallSMap() {
+        return smallSMap;
+    }
+
+    //    Calculate local reputation L_i,j according to formula
+    public List<Double> refreshLocalReputation(Pair<User, User> userPair, long timestamp) {
+        List<Transaction> txList = txHistoryService.getTxHistory(userPair);
+        List<Double> localReputationForTxList = new ArrayList<>();
+        localReputationForTxList.add(0.5);
+
+        bigMacMap.put(userPair, DEFAULT_BIG_MAC);
+        if (!CollectionUtils.isEmpty(txList)) {
+            computeEffectiveLocalReputation(userPair, localReputationForTxList, txList);
+        }
+
+        computeCurrentLocalReputation(userPair, localReputationForTxList, txList, timestamp);
+        return getLocalReputationIndividualMap().put(userPair, localReputationForTxList);
+    }
+
+    private Double computeCurrentLocalReputation(Pair<User, User> userPair,
+                                                 List<Double> localReputationForTxList, List<Transaction> txList,
+                                                 long timestamp) {
         Double latestLocalReputation = localReputationForTxList.get(localReputationForTxList.size() - 1);
+        Double bigMac = bigMacMap.get(userPair);
         Double phiBigMac = Math.exp(-1 / bigMac);
         Double currenLocalReputation = 0d;
         if (!CollectionUtils.isEmpty(txList)) {
@@ -77,18 +89,18 @@ public class LocalReputationService {
         return currenLocalReputation;
     }
 
-    private Double computeEffectiveLocalReputation(List<Double> localReputationForTxList, List<Transaction> txList) {
+    private void computeEffectiveLocalReputation(
+            Pair<User, User> userPair, List<Double> localReputationForTxList, List<Transaction> txList) {
         double result = 0;
         List<Double> ruoList = new ArrayList<>();
-        Double bigMac = calculateRuo(txList, ruoList);
-        for (int k = 1; k <= txList.size(); k++) {
-            result += txList.get(k - 1).getSellerRating() * ruoList.get(k - 1);
+        calculateRuo(userPair, txList, ruoList);
+        for (int k = 0; k < txList.size(); k++) {
+            result += txList.get(k).getSellerRating() * ruoList.get(k);
             localReputationForTxList.add(result);
         }
-        return bigMac;
     }
 
-    private Double calculateRuo(List<Transaction> txList, List<Double> ruoList) {
+    private void calculateRuo(Pair<User, User> userPair, List<Transaction> txList, List<Double> ruoList) {
         List<Double> s = new ArrayList<>();
 
         //        calculate s_k,l
@@ -96,17 +108,16 @@ public class LocalReputationService {
         for (int i = 0; i < txList.size(); i++) {
             s.add(txList.get(i).getTxTimestamp() * 1.0d / sumTime);
         }
+        smallSMap.put(userPair, s);
 
         Double M = IntStream.range(0, txList.size())
                 .mapToDouble(i -> s.get(i) * txList.get(i).getAmount())
                 .sum();
-
+        bigMacMap.put(userPair, M);
 
         ruoList = (List<Double>) IntStream.range(0, txList.size())
                 .mapToDouble(i -> s.get(i) * txList.get(i).getAmount() / M)
                 .boxed()
                 .collect(Collectors.toList());
-
-        return M;
     }
 }

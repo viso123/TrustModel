@@ -19,8 +19,8 @@ public class TxHistoryService {
         return txHistory;
     }
 
-    public List<Transaction> getTxHistory(User buyer, User seller) {
-        return txHistory.getOrDefault(Pair.of(buyer, seller), new ArrayList<>());
+    public List<Transaction> getTxHistory(Pair<User, User> buyerSellerPair) {
+        return txHistory.getOrDefault(buyerSellerPair, new ArrayList<>());
     }
 
     public boolean add(Transaction tx) {
