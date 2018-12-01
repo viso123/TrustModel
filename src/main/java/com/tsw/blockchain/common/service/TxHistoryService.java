@@ -15,18 +15,34 @@ import java.util.concurrent.ConcurrentHashMap;
 public class TxHistoryService {
     private Map<Pair<User, User>, List<Transaction>> txHistory = new ConcurrentHashMap<>();
 
-    public Map<Pair<User, User>, List<Transaction>> getAllTxHistory() {
+    //For i,j pair, Double[] has 3 elements, i's rating on j, tx amount, tx timestamp
+    private Map<Pair<User, User>, List<Object[]>> txRating = new ConcurrentHashMap<>();
+
+    public Map<Pair<User, User>, List<Transaction>> getTxHistory() {
         return txHistory;
     }
 
-    public List<Transaction> getTxHistory(Pair<User, User> buyerSellerPair) {
-        return txHistory.getOrDefault(buyerSellerPair, new ArrayList<>());
+    public List<Transaction> getTxHistory(Pair<User, User> userPair) {
+        return txHistory.getOrDefault(userPair, new ArrayList<>());
     }
 
-    public boolean add(Transaction tx) {
-        return txHistory
-                .computeIfAbsent(Pair.of(tx.getBuyer(), tx.getSeller()), value -> new ArrayList<>())
+    public Map<Pair<User, User>, List<Object[]>> getTxRating() {
+        return txRating;
+    }
+
+    public List<Object[]> getTxRating(Pair<User, User> userPair) {
+        return txRating.getOrDefault(userPair, new ArrayList<>());
+    }
+
+    public void add(Transaction tx) {
+        txHistory.computeIfAbsent(Pair.of(tx.getBuyer(), tx.getSeller()), value -> new ArrayList<>())
                 .add(tx);
+        Object infoArray1[] = { tx.getSellerRating(), tx.getAmount(), tx.getTxTimestamp() };
+        txRating.computeIfAbsent(Pair.of(tx.getBuyer(), tx.getSeller()), value -> new ArrayList<>())
+                .add(infoArray1);
+        Object infoArray2[] = { tx.getBuyerRating(), tx.getAmount(), tx.getTxTimestamp() };
+        txRating.computeIfAbsent(Pair.of(tx.getSeller(), tx.getBuyer()), value -> new ArrayList<>())
+                .add(infoArray2);
     }
 
     public Optional<Transaction> getLast(Pair<User, User> buyerSellerPair) {
