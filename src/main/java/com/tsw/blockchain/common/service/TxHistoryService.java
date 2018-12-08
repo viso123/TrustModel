@@ -54,4 +54,8 @@ public class TxHistoryService {
         }
     }
 
+    public Double calculateTxAmountTotal(Pair<User, User> user) {
+        return txRating.get(user).stream().mapToDouble(i -> (Double) i[1]).sum();
+    }
+
 }
